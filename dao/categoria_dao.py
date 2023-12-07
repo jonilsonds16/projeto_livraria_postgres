@@ -38,7 +38,7 @@ class CategoriaDAO:
     def remover(self, categoria_id: int) -> bool:
         conexao = self.__conexao_factory.get_conexao()
         cursor = conexao.cursor()
-        cursor.execute("DELETE FROM categorias WHERE id = 10", (categoria_id,))
+        cursor.execute("DELETE FROM categorias WHERE id = %s", (categoria_id,))
         categorias_removidas = cursor.rowcount
         conexao.commit()
         cursor.close()
@@ -50,8 +50,14 @@ class CategoriaDAO:
 
     def buscar_por_id(self, categoria_id) -> Categoria:
         cat = None
-        for c in self.__categorias:
-            if (c.id == categoria_id):
-                cat = c
-                break
+        conexao = self.__conexao_factory.get_conexao()
+        cursor = conexao.cursor()
+        cursor.execute(
+            "SELECT id, nome FROM categorias WHERE id = %s", (categoria_id,))
+        resultado = cursor.fetchone()
+        if (resultado):
+            cat = Categoria(resultado[1])
+            cat.id = resultado[0]
+        cursor.close()
+        conexao.close()
         return cat
