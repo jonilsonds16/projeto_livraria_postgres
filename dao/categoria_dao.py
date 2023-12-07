@@ -25,7 +25,15 @@ class CategoriaDAO:
         return categorias
 
     def adicionar(self, categoria: Categoria) -> None:
-        self.__categorias.append(categoria)
+        conexao = self.__conexao_factory.get_conexao()
+        cursor = conexao.cursor()
+        cursor.execute("""
+            INSERT INTO categorias (nome) VALUES (%(nome)s)
+            """,
+                       ({'nome': categoria.nome, }))
+        conexao.commit()
+        cursor.close()
+        conexao.close()
 
     def remover(self, categoria_id: int) -> bool:
         encontrado = False
