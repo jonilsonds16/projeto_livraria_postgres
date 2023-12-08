@@ -8,7 +8,6 @@ from dao.autor_dao import AutorDAO
 class LivroDAO:
 
     def __init__(self, categoria_dao: CategoriaDAO, editora_dao: EditoraDAO, autor_dao: AutorDAO):
-        self.__livros: list[Livro] = list()
         self.__conexao_factory: ConexaoFactory = ConexaoFactory()
         self.__categoria_dao: CategoriaDAO = categoria_dao
         self.__editora_dao: EditoraDAO = editora_dao
@@ -37,7 +36,21 @@ class LivroDAO:
         return livros
 
     def adicionar(self, livro: Livro) -> None:
-        self.__livros.append(livro)
+        conexao = self.__conexao_factory.get_conexao()
+        cursor = conexao.cursor()
+        cursor.execute("""
+                        INSERT INTO livros 
+                            (titulo, resumo, ano, paginas, isbn, categoria_id, editora_id, autor_id)
+                        VALUES
+                            (%(titulo)s, %(resumo)s, %(ano)s, %(paginas)s, %(isbn)s, %(categoria_id)s, 
+                            %(editora_id)s, %(autor_id)s)
+                        """,
+                       ({'titulo': livro.titulo, 'resumo': livro.resumo, 'ano': livro.ano,
+                         'paginas': livro.paginas, 'isbn': livro.isbn, 'categoria_id': livro.categoria.id,
+                         'editora_id': livro.editora.id, 'autor_id': livro.autor.id}))
+        conexao.commit()
+        cursor.close()
+        conexao.close()
 
     def remover(self, livro_id: int) -> bool:
         conexao = self.__conexao_factory.get_conexao()
